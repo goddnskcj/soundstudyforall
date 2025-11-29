@@ -1010,7 +1010,7 @@
   "use strict";
 
   // ----------------------
-  // 상태 관리 & 유틸
+  // 공통 상태 관리 & 유틸
   // ----------------------
   const state = {
     xp: 0,
@@ -1157,7 +1157,7 @@
   });
 
   // ----------------------
-  // Web Audio + 녹음 + 파형 (iOS 고려)
+  // 발음 모듈: Web Audio + Web Speech API
   // ----------------------
   let audioContext = null;
   let analyser = null;
@@ -1167,11 +1167,17 @@
   let recordingStartTime = 0;
   let lastRMS = 0;
 
-  // MediaRecorder 지원 여부 (안 되면 iOS용 fallback)
+  // MediaRecorder (일부 환경) + Web Speech API (실제 음성인식)
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const supportsMediaRecorder = typeof MediaRecorder !== "undefined";
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const supportsSTT = !!SpeechRecognition && !isIOS; // iOS 웹은 STT 사실상 미지원
+
   let mediaRecorder = null;
   let recordingChunks = [];
-  let hasSample = false; // 분석 가능 여부 플래그
+  let hasSample = false;
+  let recognition = null;
+  let recognizedText = "";
 
   const waveformCanvas = document.getElementById("waveform");
   const canvasCtx = waveformCanvas.getContext("2d");
@@ -1236,6 +1242,37 @@
     waveAnimationId = requestAnimationFrame(drawWaveform);
   }
 
+  // 문자열 유사도(Levenshtein 기반)
+  function editDistance(a, b) {
+    a = a || "";
+    b = b || "";
+    const m = a.length;
+    const n = b.length;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        dp[i][j] = Math.min(
+          dp[i - 1][j] + 1,
+          dp[i][j - 1] + 1,
+          dp[i - 1][j - 1] + cost
+        );
+      }
+    }
+    return dp[m][n];
+  }
+
+  function similarityRatio(a, b) {
+    a = (a || "").replace(/\s+/g, "");
+    b = (b || "").replace(/\s+/g, "");
+    if (!a.length && !b.length) return 1;
+    const dist = editDistance(a, b);
+    const maxLen = Math.max(a.length, b.length) || 1;
+    return 1 - dist / maxLen; // 0~1
+  }
+
   async function startRecording() {
     try {
       state.usedModules.pronunciation = true;
@@ -1253,6 +1290,7 @@
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
       }
 
+      // 파형용 마이크 스트림
       mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
       const source = audioContext.createMediaStreamSource(mediaStream);
@@ -1261,11 +1299,12 @@
       source.connect(analyser);
       recordingStartTime = performance.now();
       hasSample = false;
+      recognizedText = "";
 
       drawWaveform();
 
+      // MediaRecorder는 있는 환경에서만 사용 (파일은 안 쓰지만 종료 시 flag용)
       if (supportsMediaRecorder) {
-        // Android/데스크탑 등에서만 사용
         mediaRecorder = new MediaRecorder(mediaStream);
         recordingChunks = [];
 
@@ -1276,16 +1315,45 @@
         };
 
         mediaRecorder.onstop = () => {
-          hasSample = recordingChunks.length > 0;
-          btnAnalyze.disabled = !hasSample;
+          hasSample = true;
+          btnAnalyze.disabled = false;
           btnStart.disabled = false;
           btnStop.disabled = true;
         };
 
         mediaRecorder.start();
       } else {
-        // iOS 대응: MediaRecorder 없이도 분석은 가능
-        logEvent("이 환경에서는 MediaRecorder가 없어도 실시간 파형으로 분석합니다.");
+        // MediaRecorder가 없더라도, 파형+시간만으로 분석 가능하니 flag만 나중에 세움
+        logEvent("이 환경에서는 MediaRecorder 없이 실시간 파형으로 분석합니다.");
+      }
+
+      // 실제 음성 인식 (지원 브라우저에서만)
+      if (supportsSTT) {
+        if (!recognition) {
+          recognition = new SpeechRecognition();
+          recognition.lang = "ko-KR";
+          recognition.interimResults = false;
+          recognition.maxAlternatives = 1;
+        }
+
+        recognition.onresult = (event) => {
+          if (event.results && event.results[0] && event.results[0][0]) {
+            recognizedText = event.results[0][0].transcript.trim();
+            logEvent(`음성 인식 결과: "${recognizedText}"`);
+          }
+        };
+        recognition.onerror = (e) => {
+          console.warn("STT error:", e);
+          logEvent("음성 인식 중 오류가 발생했습니다.");
+        };
+        recognition.onend = () => {
+          // 끝났을 때 바로 할 건 없음. 사용자가 '분석'을 눌렀을 때 활용
+        };
+
+        recognition.start();
+        logEvent("실제 음성 인식을 시작했습니다 (지원 브라우저).");
+      } else {
+        logEvent("이 환경에서는 Web Speech API가 없어 모의 발음 평가만 사용합니다.");
       }
 
       logEvent("녹음을 시작했습니다.");
@@ -1311,7 +1379,6 @@
     if (supportsMediaRecorder && mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
     } else {
-      // iOS 등: MediaRecorder가 없으므로 여기서 샘플 확보 완료로 본다
       hasSample = true;
       btnAnalyze.disabled = false;
       btnStart.disabled = false;
@@ -1325,6 +1392,15 @@
       cancelAnimationFrame(waveAnimationId);
       waveAnimationId = null;
     }
+
+    if (supportsSTT && recognition) {
+      try {
+        recognition.stop();
+      } catch (e) {
+        console.warn("recognition stop error:", e);
+      }
+    }
+
     logEvent("녹음을 종료했습니다.");
   }
 
@@ -1338,6 +1414,7 @@
 
     const targetSentence = document.getElementById("targetSentence").value;
 
+    // 1) 리듬/강도 기반 점수 (예전 방식 유지)
     const lengthScore =
       durationSec < 0.7
         ? 20
@@ -1351,10 +1428,31 @@
       ? 50
       : 50 + (lastRMS * 100);
 
-    let baseScore = Math.round((lengthScore + loudnessScore) / 2);
-    baseScore = Math.max(10, Math.min(100, baseScore));
+    let prosodyScore = Math.round((lengthScore + loudnessScore) / 2);
+    prosodyScore = Math.max(10, Math.min(100, prosodyScore));
 
-    if (durationSec < 0.8) baseScore = Math.max(5, baseScore - 25);
+    if (durationSec < 0.8) prosodyScore = Math.max(5, prosodyScore - 25);
+
+    // 2) 실제 음성 인식 결과 기반 내용 점수
+    let contentScore;
+    let sim = 0;
+
+    if (supportsSTT && recognizedText) {
+      sim = similarityRatio(targetSentence, recognizedText);
+      // 유사도 1 -> 100점, 0.5 -> 60점, 0.2 -> 30점 정도로 스케일링
+      contentScore = Math.round(30 + sim * 70);
+      contentScore = Math.max(10, Math.min(100, contentScore));
+    } else if (supportsSTT && !recognizedText) {
+      // 인식이 안 되었을 때
+      contentScore = 30;
+    } else {
+      // STT 없는 환경 (아이폰 등) → 내용 점수는 리듬 점수와 동일하게 두고, 안내만.
+      contentScore = prosodyScore;
+    }
+
+    // 최종 점수: 내용 60%, 리듬/강도 40%
+    let baseScore = Math.round(contentScore * 0.6 + prosodyScore * 0.4);
+    baseScore = Math.max(10, Math.min(100, baseScore));
 
     state.attempts += 1;
     state.totalScore += baseScore;
@@ -1371,6 +1469,10 @@
       scoreText.classList.toggle("bad", baseScore < 50);
     }
 
+    const recognizedInfo = supportsSTT
+      ? (recognizedText ? ` · 인식된 문장: "${recognizedText}"` : " · 인식된 문장이 없습니다.")
+      : " · (이 브라우저는 음성 인식을 지원하지 않아 내용 점수는 모의 값입니다.)";
+
     if (scoreDetail) {
       const lengthDesc =
         durationSec < 1.0
@@ -1384,10 +1486,15 @@
           : lastRMS > 0.25
           ? "충분히 크게 발음했어요. 너무 힘을 주지 않도록 주의해요."
           : "볼륨도 적당합니다. 입모양과 리듬에 집중해 봅시다.";
+
+      const simDesc = supportsSTT
+        ? `목표 문장과의 유사도: ${(sim * 100).toFixed(0)}%`
+        : "이 환경에서는 문장 유사도를 계산할 수 없습니다.";
+
       scoreDetail.textContent =
         `목표 문장: "${targetSentence}" · 녹음 시간: ${durationSec.toFixed(1)}초 · ` +
-        `길이 점수: ${Math.round(lengthScore)} / 볼륨 점수: ${Math.round(loudnessScore)}. ` +
-        lengthDesc + " " + loudDesc;
+        `내용 점수: ${contentScore} / 리듬·강도 점수: ${prosodyScore}. ` +
+        recognizedInfo + " " + simDesc + " " + lengthDesc + " " + loudDesc;
     }
 
     if (rhythmChips) {
@@ -1412,14 +1519,16 @@
 
       const tipChip = document.createElement("span");
       tipChip.className = "chip";
-      tipChip.textContent = "TIP: 같은 문장을 2~3회 반복하며 점수 변화를 비교해 보세요.";
+      tipChip.textContent = supportsSTT
+        ? "TIP: 같은 문장을 여러 번 말해 보면서 유사도 % 변화를 관찰해 보세요."
+        : "TIP: 이 브라우저에서는 리듬·볼륨 중심 피드백만 제공합니다.";
 
       rhythmChips.appendChild(rhythmChip);
       rhythmChips.appendChild(loudChip);
       rhythmChips.appendChild(tipChip);
     }
 
-    logEvent(`발음 분석 완료 · 점수 ${baseScore}점`);
+    logEvent(`발음 분석 완료 · 최종 점수 ${baseScore}점`);
   }
 
   document.getElementById("btnStartRecord").addEventListener("click", startRecording);
@@ -1427,10 +1536,9 @@
   document.getElementById("btnAnalyze").addEventListener("click", analyzeRecording);
 
   // ----------------------
-  // 진동 제어 (iOS 안내)
+  // 진동 제어 (iOS 안내 포함)
   // ----------------------
   const vibrationStatus = document.getElementById("vibrationStatus");
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const supportsVibrationAPI = "vibrate" in navigator && !isIOS;
 
   if (vibrationStatus) {
