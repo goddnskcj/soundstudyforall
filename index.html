@@ -22,9 +22,7 @@
       --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.8);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -110,7 +108,7 @@
       color: var(--accent);
     }
 
-    /* NAV */
+    /* NAV & MODE TOGGLE */
 
     .nav {
       display: flex;
@@ -147,6 +145,48 @@
       box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
     }
 
+    .mode-toggle {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mode-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .mode-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .mode-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 3px 9px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .mode-btn.small {
+      font-size: 10px;
+      padding: 2px 7px;
+    }
+
+    .mode-btn.active {
+      border-color: rgba(56, 189, 248, 0.9);
+      background: radial-gradient(circle at top, #0b1120, #020617);
+      color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+    }
+
     main {
       margin-top: 18px;
       display: grid;
@@ -174,15 +214,9 @@
 
     /* DASHBOARD */
 
-    .grid {
-      display: grid;
-      gap: 10px;
-    }
-
+    .grid { display: grid; gap: 10px; }
     @media (min-width: 720px) {
-      .grid-2 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+      .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     .card {
@@ -201,9 +235,7 @@
       margin-bottom: 6px;
     }
 
-    .card-title {
-      font-weight: 500;
-    }
+    .card-title { font-weight: 500; }
 
     .badge-soft {
       font-size: 11px;
@@ -300,9 +332,7 @@
     }
 
     input[type="text"]::placeholder,
-    textarea::placeholder {
-      color: rgba(148, 163, 184, 0.6);
-    }
+    textarea::placeholder { color: rgba(148, 163, 184, 0.6); }
 
     input[type="text"]:focus,
     textarea:focus {
@@ -322,9 +352,7 @@
       margin-top: 7px;
     }
 
-    button {
-      font-family: inherit;
-    }
+    button { font-family: inherit; }
 
     .btn {
       border-radius: 999px;
@@ -353,10 +381,7 @@
       color: var(--text-muted);
     }
 
-    .btn.small {
-      padding: 4px 9px;
-      font-size: 11px;
-    }
+    .btn.small { padding: 4px 9px; font-size: 11px; }
 
     .btn:disabled {
       opacity: 0.5;
@@ -370,9 +395,7 @@
       margin-top: 4px;
     }
 
-    .hint strong {
-      color: var(--accent);
-    }
+    .hint strong { color: var(--accent); }
 
     /* CANVAS */
 
@@ -383,9 +406,7 @@
     }
 
     @media (min-width: 760px) {
-      .canvas-row {
-        grid-template-columns: 3fr 2fr;
-      }
+      .canvas-row { grid-template-columns: 3fr 2fr; }
     }
 
     .canvas-card {
@@ -418,13 +439,8 @@
       margin: 1px 0 4px;
     }
 
-    .score-main.good {
-      color: var(--success);
-    }
-
-    .score-main.bad {
-      color: var(--danger);
-    }
+    .score-main.good { color: var(--success); }
+    .score-main.bad  { color: var(--danger); }
 
     .score-detail {
       font-size: 12px;
@@ -510,12 +526,9 @@
       font-size: 11px;
     }
 
-    thead {
-      background: rgba(15, 23, 42, 0.95);
-    }
+    thead { background: rgba(15, 23, 42, 0.95); }
 
-    th,
-    td {
+    th, td {
       border: 1px solid rgba(31, 41, 55, 0.95);
       padding: 5px 6px;
       text-align: left;
@@ -530,13 +543,8 @@
       background: rgba(15, 23, 42, 0.7);
     }
 
-    .text-right {
-      text-align: right;
-    }
-
-    .text-muted {
-      color: var(--text-muted);
-    }
+    .text-right { text-align: right; }
+    .text-muted { color: var(--text-muted); }
 
     .log-list {
       max-height: 140px;
@@ -562,9 +570,7 @@
       margin-top: 6px;
     }
 
-    .alert strong {
-      color: var(--accent);
-    }
+    .alert strong { color: var(--accent); }
   </style>
 </head>
 <body>
@@ -577,6 +583,7 @@
           <p class="tagline">"들을 수 없어도, 발음과 리듬을 시각·촉각으로 경험할 수 있는 연습 공간"</p>
         </div>
       </div>
+
       <div class="chip-row">
         <span class="chip primary">시각적 피드백</span>
         <span class="chip">진동 기반 리듬</span>
@@ -584,6 +591,27 @@
         <span class="chip">립리딩 학습</span>
         <span class="chip">게이미피케이션</span>
       </div>
+
+      <!-- 학습자 모드: 통합 수업 / 청각장애 중심 / 일반 학생 -->
+      <div class="mode-toggle">
+        <span class="mode-label">학습자 모드</span>
+        <div class="mode-buttons">
+          <button class="mode-btn active" data-mode="integrated">통합 수업</button>
+          <button class="mode-btn" data-mode="deaf">청각장애 중심</button>
+          <button class="mode-btn" data-mode="hearing">일반 학생</button>
+        </div>
+      </div>
+
+      <!-- 청각장애 정도(개인화) – 청각장애 중심 모드에서 사용 -->
+      <div id="hearingLevelRow" class="mode-toggle" style="display:none;">
+        <span class="mode-label">청각장애 정도 (개인화)</span>
+        <div class="mode-buttons">
+          <button class="mode-btn small" data-hearing="mild">경도/부분 난청</button>
+          <button class="mode-btn small active" data-hearing="moderate">중등도</button>
+          <button class="mode-btn small" data-hearing="severe">고도·농 수준</button>
+        </div>
+      </div>
+
       <nav class="nav">
         <button class="nav-btn active" data-target="panel-dashboard">
           <span class="icon">📊</span> 대시보드
@@ -697,6 +725,7 @@
           <p class="hint">
             문장을 바꿔도 괜찮아요. <strong>녹음 시작 → 말하기 → 녹음 종료 → 분석</strong> 순서로 사용합니다.
           </p>
+          <p id="modeExplainPronunciation" class="hint"></p>
 
           <div class="btn-row">
             <button id="btnStartRecord" class="btn primary">
@@ -816,6 +845,7 @@
           이 화면은 실제 수업에서 교사가 보는 것처럼, 학생의 발음 시도 기록과 점수를 가볍게 모의 체험하는 용도입니다.
           모든 데이터는 <strong>브라우저에만 로컬 저장</strong>되며 서버로 전송되지 않습니다.
         </p>
+        <p id="modeExplainTeacher" class="hint"></p>
 
         <div class="card" style="margin-bottom:10px;">
           <div class="card-header">
@@ -874,10 +904,12 @@
         vibration: false,
         lipreading: false
       },
-      history: [] // {time, target, recognized, score, durationSec}
+      history: [], // {time, target, recognized, score, durationSec}
+      learnerMode: "integrated", // 통합 수업 / 청각장애 중심 / 일반 학생
+      hearingLevel: "moderate"   // mild / moderate / severe (개인화)
     };
 
-    const STORAGE_KEY = "soundstudy_demo_state_v2";
+    const STORAGE_KEY = "soundstudy_demo_state_v3";
 
     function logEvent(message) {
       const log = document.getElementById("eventLog");
@@ -1053,9 +1085,75 @@
       });
     }
 
+    function updateModeUI() {
+      const mode = state.learnerMode || "integrated";
+      const modeButtons = document.querySelectorAll(".mode-btn[data-mode]");
+      modeButtons.forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-mode") === mode);
+      });
+
+      const hearingRow = document.getElementById("hearingLevelRow");
+      if (hearingRow) {
+        hearingRow.style.display = mode === "deaf" ? "flex" : "none";
+      }
+
+      const modeExplainPron = document.getElementById("modeExplainPronunciation");
+      const modeExplainTeacher = document.getElementById("modeExplainTeacher");
+
+      const level = state.hearingLevel || "moderate";
+
+      let pronText = "";
+      let teacherText = "";
+
+      if (mode === "integrated") {
+        pronText =
+          "통합 수업 모드입니다. 같은 문장을 두 학생이 함께 연습하되, 청각장애 학생은 시각·촉각 피드백을, 일반 학생은 청각·시각 피드백을 중심으로 활용하는 상황을 가정합니다.";
+        teacherText =
+          "통합 수업 모드: 동일한 활동 안에서 두 집단의 발음 패턴·리듬 차이를 비교하는 데 초점을 둡니다.";
+      } else if (mode === "deaf") {
+        if (level === "mild") {
+          pronText =
+            "청각장애 중심 모드 · 경도/부분 난청 프로필입니다. 들리는 소리와 파형·텍스트를 함께 보며, 시각적 피드백을 보조 도구로 사용하는 연습에 초점을 둡니다.";
+          teacherText =
+            "경도/부분 난청 프로필: 일반 음성 정보에 접근은 가능하지만, 소음·교실 환경에서 시각 피드백이 얼마나 도움을 주는지에 주목하여 데이터를 해석할 수 있습니다.";
+        } else if (level === "moderate") {
+          pronText =
+            "청각장애 중심 모드 · 중등도 프로필입니다. 파형·주파수·텍스트 피드백을 동시에 활용하며, 소리 없이도 발음 구조를 파악할 수 있도록 설계된 연습을 가정합니다.";
+          teacherText =
+            "중등도 프로필: 보조기기·자막과 함께 다중감각 피드백을 병행하는 상황을 가정하며, 시각·촉각 피드백의 기여도를 관찰하는 데 적합합니다.";
+        } else {
+          pronText =
+            "청각장애 중심 모드 · 고도·농 수준 프로필입니다. 소리를 듣지 못해도 파형·주파수·진동 피드백만으로 발음과 리듬을 이해하는 연습에 초점을 둡니다.";
+          teacherText =
+            "고도·농 수준 프로필: 청각 정보 없이도 의사소통이 가능하도록, 시각·촉각 채널만으로 발음 피드백을 구성했을 때의 한계와 가능성을 살펴볼 수 있습니다.";
+        }
+      } else if (mode === "hearing") {
+        pronText =
+          "일반 학생 모드입니다. 귀로 들리는 소리를 중심으로 연습하되, 청각장애 학생과 동일한 화면 구조를 사용해 시각 피드백을 보조적으로 활용합니다.";
+        teacherText =
+          "일반 학생 모드: 동일한 UI를 사용하면서 청각 정보가 추가된 집단과의 발음·리듬 차이를 비교 분석하는 데 활용할 수 있습니다.";
+      }
+
+      if (modeExplainPron) modeExplainPron.textContent = pronText;
+      if (modeExplainTeacher) modeExplainTeacher.textContent = teacherText;
+
+      updateHearingLevelUI();
+    }
+
+    function updateHearingLevelUI() {
+      const buttons = document.querySelectorAll(".mode-btn[data-hearing]");
+      buttons.forEach((btn) => {
+        btn.classList.toggle(
+          "active",
+          btn.getAttribute("data-hearing") === state.hearingLevel
+        );
+      });
+    }
+
     function updateAllUI() {
       updateDashboard();
       rebuildHistoryTable();
+      updateModeUI();
     }
 
     // ----------------------
@@ -1125,11 +1223,9 @@
       const height = waveCanvas.height;
       waveCtx.clearRect(0, 0, width, height);
 
-      // 배경
       waveCtx.fillStyle = "#020617";
       waveCtx.fillRect(0, 0, width, height);
 
-      // 기준선
       waveCtx.strokeStyle = "rgba(148,163,184,0.4)";
       waveCtx.lineWidth = 1 * window.devicePixelRatio;
       waveCtx.beginPath();
@@ -1137,7 +1233,6 @@
       waveCtx.lineTo(width, height / 2);
       waveCtx.stroke();
 
-      // 파형
       waveCtx.lineWidth = 2.4 * window.devicePixelRatio;
       waveCtx.strokeStyle = "#38bdf8";
       waveCtx.beginPath();
@@ -1470,11 +1565,31 @@
             : lastRMS > 0.25
             ? "강도: 강한 편 · 부드럽게 조절"
             : "강도: 적당함 · 좋습니다!";
+
         const chip3 = document.createElement("span");
         chip3.className = "chip-soft";
-        chip3.textContent = supportsSTT
-          ? "TIP: 같은 문장을 여러 번 말하면서 유사도% 변화를 관찰해 보세요."
-          : "TIP: 이 환경에서는 리듬·볼륨 중심 피드백만 제공합니다.";
+
+        const mode = state.learnerMode;
+        const level = state.hearingLevel;
+
+        if (mode === "deaf") {
+          if (level === "mild") {
+            chip3.textContent = supportsSTT
+              ? "TIP: 파형과 함께 인식된 문장을 비교하며, 말소리와 시각 피드백을 함께 활용해 보세요."
+              : "TIP: 파형을 보면서, 어느 구간에서 발음이 약해지는지 눈으로 확인해 보세요.";
+          } else if (level === "moderate") {
+            chip3.textContent = supportsSTT
+              ? "TIP: 소리를 듣기 어렵다고 느껴지는 구간을 파형·텍스트로 표시해 두고 반복 연습해 보세요."
+              : "TIP: 파형의 크기·리듬을 기준으로, 특정 음절을 더 길게/짧게 조절해 보는 연습을 해 보세요.";
+          } else {
+            chip3.textContent = "TIP: 소리 대신 파형과 진동에 집중해, 입모양·호흡 리듬을 몸으로 기억해 보세요.";
+          }
+        } else {
+          chip3.textContent = supportsSTT
+            ? "TIP: 같은 문장을 여러 번 말하면서 유사도% 변화를 관찰해 보세요."
+            : "TIP: 이 환경에서는 리듬·볼륨 중심 피드백만 제공합니다.";
+        }
+
         rhythmChips.appendChild(chip1);
         rhythmChips.appendChild(chip2);
         rhythmChips.appendChild(chip3);
@@ -1484,7 +1599,6 @@
       saveState();
     }
 
-    // 버튼 이벤트
     document
       .getElementById("btnStartRecord")
       .addEventListener("click", startRecording);
@@ -1650,6 +1764,43 @@
     btnStopLipCam.addEventListener("click", stopLipCamera);
 
     // ----------------------
+    // 학습자 모드 토글 & 청각장애 정도
+    // ----------------------
+    document.querySelectorAll(".mode-btn[data-mode]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const mode = btn.getAttribute("data-mode");
+        state.learnerMode = mode;
+        updateModeUI();
+        saveState();
+        logEvent(
+          mode === "integrated"
+            ? "학습자 모드: 통합 수업으로 전환했습니다."
+            : mode === "deaf"
+            ? "학습자 모드: 청각장애 중심으로 전환했습니다."
+            : "학습자 모드: 일반 학생으로 전환했습니다."
+        );
+      });
+    });
+
+    document.querySelectorAll(".mode-btn[data-hearing]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const level = btn.getAttribute("data-hearing");
+        state.hearingLevel = level;
+        updateModeUI();
+        saveState();
+        if (state.learnerMode === "deaf") {
+          const label =
+            level === "mild"
+              ? "경도/부분 난청"
+              : level === "moderate"
+              ? "중등도"
+              : "고도·농 수준";
+          logEvent(`청각장애 정도를 '${label}' 프로필로 설정했습니다.`);
+        }
+      });
+    });
+
+    // ----------------------
     // 진행도 초기화
     // ----------------------
     document
@@ -1668,6 +1819,8 @@
         state.usedModules.vibration = false;
         state.usedModules.lipreading = false;
         state.history = [];
+        state.learnerMode = "integrated";
+        state.hearingLevel = "moderate";
         updateAllUI();
         logEvent("진행도와 기록을 모두 초기화했습니다.");
       });
@@ -1679,7 +1832,7 @@
       resizeCanvases();
       loadState();
       logEvent(
-        "SoundStudy 데모를 시작했습니다. 상단 탭에서 원하는 모듈을 선택해 체험해 보세요."
+        "SoundStudy 데모를 시작했습니다. 상단 탭과 학습자 모드를 바꾸며 포용적 수업 시나리오를 체험해 보세요."
       );
     });
   </script>
