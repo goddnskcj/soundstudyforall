@@ -579,8 +579,8 @@
       <div class="title-row">
         <div class="logo-circle">S</div>
         <div>
-          <h1>SoundStudy for All · 데모</h1>
-          <p class="tagline">"들을 수 없어도, 발음과 리듬을 시각·촉각으로 경험할 수 있는 연습 공간"</p>
+          <h1>SoundStudy for All (Demo ver.) </h1>
+          <p class="tagline">"청각장애 학생을 위한 다중감각 언어 학습 플랫폼"</p>
         </div>
       </div>
 
@@ -617,13 +617,13 @@
           <span class="icon">📊</span> 대시보드
         </button>
         <button class="nav-btn" data-target="panel-pronunciation">
-          <span class="icon">🎙</span> 발음 실험실
+          <span class="icon">🎙</span> 발음 연습
         </button>
         <button class="nav-btn" data-target="panel-lipreading">
           <span class="icon">👄</span> 립리딩
         </button>
         <button class="nav-btn" data-target="panel-teacher">
-          <span class="icon">📚</span> 교사 보기
+          <span class="icon">📚</span> 학습 현황
         </button>
       </nav>
     </header>
@@ -711,7 +711,8 @@
       <section id="panel-pronunciation" class="panel" hidden>
         <h2>발음 실험실</h2>
         <p class="panel-subtitle">
-          목표 문장을 말하면, 파형·리듬·볼륨과 (지원 브라우저에서는) 문장 유사도까지 분석해 주는 연습 공간입니다.
+          목표 문장을 말하면, 파형·리듬·볼륨과 문장 유사도까지 분석해 주는 연습 공간입니다.
+          (AI 문장 유사도 분석 기능은 아직 구현하지 않았습니다.)
         </p>
 
         <div class="card">
@@ -840,10 +841,10 @@
 
       <!-- TEACHER VIEW -->
       <section id="panel-teacher" class="panel" hidden>
-        <h2>교사 보기 (로컬 데모)</h2>
+        <h2>학습 현황</h2>
         <p class="panel-subtitle">
-          이 화면은 실제 수업에서 교사가 보는 것처럼, 학생의 발음 시도 기록과 점수를 가볍게 모의 체험하는 용도입니다.
-          모든 데이터는 <strong>브라우저에만 로컬 저장</strong>되며 서버로 전송되지 않습니다.
+          발음 연습 기록과 점수를 확인할 수 있습니다.
+          데이터는 <strong>브라우저에 로컬 저장</strong>되며, 교사와 공유할 수 있습니다.
         </p>
         <p id="modeExplainTeacher" class="hint"></p>
 
@@ -875,8 +876,9 @@
           </div>
           <ul style="margin:4px 0 0 16px;font-size:12px;color:var(--text-muted);padding-left:8px;">
             <li>발음 평가는 <strong>연구용/시연용 모의 알고리즘</strong>으로, 실제 진단 도구가 아닙니다.</li>
-            <li>점수는 발화 길이, 볼륨, (지원 브라우저에서는) 목표 문장과의 텍스트 유사도를 조합해 계산합니다.</li>
-            <li>실제 서비스에서는 별도의 AI 서버와 보안 정책, 학습 데이터 관리 체계가 추가로 필요합니다.</li>
+            <li>점수는 발화 길이, 볼륨, (지원 브라우저 한정) 목표 문장과의 텍스트 유사도를 조합해 계산합니다.</li>
+            <li>실제 서비스에서는 별도의 AI 서버와 보안 정책, 학습 데이터 관리 체계를 보완할 예정입니다.</li>
+            <li>iOS와 MacOS 환경에서는 서비스가 정상적으로 작동하지 않을 수 있습니다.</li>
           </ul>
         </div>
       </section>
