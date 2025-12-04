@@ -720,19 +720,22 @@
           </p>
           <p id="modeExplainPronunciation" class="hint"></p>
 
-          <div class="btn-row">
-            <button id="btnStartRecord" class="btn primary">
-              <span>●</span> 녹음 시작
-            </button>
-            <button id="btnStopRecord" class="btn subtle" disabled>
-              ■ 녹음 종료
-            </button>
-            <button id="btnAnalyze" class="btn subtle" disabled>
-              ✨ 분석
-            </button>
-          </div>
-          <p id="sttStatus" class="hint" style="margin-top:6px;"></p>
-        </div>
+      <div class="btn-row">
+  <button id="btnStartRecord" class="btn primary">
+    <span>●</span> 녹음 시작
+  </button>
+  <button id="btnStopRecord" class="btn subtle" disabled>
+    ■ 녹음 종료
+  </button>
+  <button id="btnAnalyze" class="btn subtle" disabled>
+    ✨ 분석
+  </button>
+  <!-- 🔊 목표 문장 읽어주기 버튼 -->
+  <button id="btnSpeakTarget" class="btn subtle">
+    🔊 문장 듣기
+  </button>
+</div>
+
 
         <div class="canvas-row">
           <div class="canvas-card">
@@ -803,12 +806,17 @@
               입을 크게 벌리고 턱을 충분히 내려 주세요.
             </div>
             <div class="btn-row" style="justify-content:center;margin-top:8px;">
-              <button id="btnPrevMouth" class="btn small subtle">← 이전</button>
-              <button id="btnNextMouth" class="btn small">다음 →</button>
-            </div>
-            <p class="hint" style="margin-top:6px;">
-              입모양을 충분히 크게, 천천히 만들어 보면서 <strong>턱·입술·혀의 위치</strong>를 의식해 보세요.
-            </p>
+  <button id="btnPrevMouth" class="btn small subtle">← 이전</button>
+  <button id="btnNextMouth" class="btn small">다음 →</button>
+</div>
+<div class="btn-row" style="justify-content:center;margin-top:4px;">
+  <button id="btnSpeakMouth" class="btn small subtle">🔊 음소 듣기</button>
+</div>
+<p class="hint" style="margin-top:6px;">
+  입모양을 충분히 크게, 천천히 만들어 보면서 <strong>턱·입술·혀의 위치</strong>를 의식해 보세요.
+</p>
+<p id="ttsStatus" class="hint" style="margin-top:4px;"></p>
+
           </div>
 
           <div class="camera-box">
@@ -883,6 +891,9 @@
     // ----------------------
     // 공통 상태 & 유틸
     // ----------------------
+ const supportsTTS =
+  "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+
     const state = {
       xp: 0,
       level: 1,
@@ -923,6 +934,24 @@
         console.warn("saveState error:", e);
       }
     }
+    function speakText(text, opts = {}) {
+  if (!supportsTTS) {
+    alert("이 브라우저는 TTS(텍스트 읽어주기)를 지원하지 않습니다.");
+    return;
+  }
+  if (!text || !text.trim()) {
+    alert("읽을 텍스트가 없습니다.");
+    return;
+  }
+  const utter = new SpeechSynthesisUtterance(text.trim());
+  utter.lang = opts.lang || "ko-KR";
+  utter.rate = opts.rate ?? 1.0;
+  utter.pitch = opts.pitch ?? 1.0;
+  // 혹시 이전에 재생 중이면 취소
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utter);
+}
+
 
     function loadState() {
       try {
@@ -1427,6 +1456,19 @@
 
       logEvent("녹음을 종료했습니다.");
     }
+document
+  .getElementById("btnSpeakTarget")
+  .addEventListener("click", () => {
+    const target = document.getElementById("targetSentence").value;
+    if (!target || !target.trim()) {
+      alert("먼저 목표 문장을 입력해 주세요.");
+      return;
+    }
+    state.usedModules.pronunciation = true;
+    updateBadgesAndStats();
+    speakText(target, { lang: "ko-KR", rate: 0.95 });
+    logEvent("TTS: 목표 문장을 읽어주었습니다.");
+  });
 
     function analyzeRecording() {
       if (!hasSample) {
@@ -1688,6 +1730,16 @@
       if (mouthShapeEl) mouthShapeEl.textContent = shape.label;
       if (mouthDescEl) mouthDescEl.textContent = shape.desc;
     }
+document
+  .getElementById("btnSpeakMouth")
+  .addEventListener("click", () => {
+    const label = mouthShapes[mouthIndex].label;
+    state.usedModules.lipreading = true;
+    updateBadgesAndStats();
+    // 모음/자음은 조금 천천히
+    speakText(label, { lang: "ko-KR", rate: 0.8 });
+    logEvent("TTS: 현재 음소를 읽어주었습니다.");
+  });
 
     document
       .getElementById("btnPrevMouth")
@@ -1829,6 +1881,18 @@
         "SoundStudy 데모를 시작했습니다. 상단 탭과 학습자 모드를 바꾸며 포용적 수업 시나리오를 체험해 보세요."
       );
     });
+    (function initTTSStatus() {
+  const el = document.getElementById("ttsStatus");
+  if (!el) return;
+  if (supportsTTS) {
+    el.textContent =
+      "이 브라우저는 TTS를 지원합니다. 버튼을 눌러 목표 문장과 음소를 들을 수 있습니다.";
+  } else {
+    el.textContent =
+      "이 브라우저는 웹 TTS를 지원하지 않습니다. 실제 앱 버전에서 음성 출력 기능을 구현할 수 있습니다.";
+  }
+})();
+
   </script>
 </body>
 </html>
