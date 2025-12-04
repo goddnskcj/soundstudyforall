@@ -212,8 +212,6 @@
       color: var(--text-muted);
     }
 
-    /* DASHBOARD */
-
     .grid { display: grid; gap: 10px; }
     @media (min-width: 720px) {
       .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -310,8 +308,6 @@
       color: var(--success);
     }
 
-    /* FORM ELEMENTS */
-
     label {
       display: block;
       font-size: 12px;
@@ -397,8 +393,6 @@
 
     .hint strong { color: var(--accent); }
 
-    /* CANVAS */
-
     .canvas-row {
       display: grid;
       gap: 8px;
@@ -464,8 +458,6 @@
       color: var(--text-muted);
     }
 
-    /* LIPREADING */
-
     .lip-grid {
       display: grid;
       gap: 10px;
@@ -517,8 +509,6 @@
       color: var(--text-muted);
       margin-top: 4px;
     }
-
-    /* TEACHER VIEW */
 
     table {
       width: 100%;
@@ -592,7 +582,7 @@
         <span class="chip">게이미피케이션</span>
       </div>
 
-      <!-- 학습자 모드: 통합 수업 / 청각장애 중심 / 일반 학생 -->
+      <!-- 학습자 모드 -->
       <div class="mode-toggle">
         <span class="mode-label">학습자 모드</span>
         <div class="mode-buttons">
@@ -602,7 +592,7 @@
         </div>
       </div>
 
-      <!-- 청각장애 정도(개인화) – 청각장애 중심 모드에서 사용 -->
+      <!-- 청각장애 정도 (개인화) -->
       <div id="hearingLevelRow" class="mode-toggle" style="display:none;">
         <span class="mode-label">청각장애 정도 (개인화)</span>
         <div class="mode-buttons">
@@ -737,7 +727,7 @@
             <button id="btnAnalyze" class="btn subtle" disabled>
               ✨ 분석
             </button>
-            <!-- 🔊 목표 문장 TTS -->
+            <!-- 🔊 목표 문장 TTS (모드에 따라 숨김/표시) -->
             <button id="btnSpeakTarget" class="btn subtle">
               🔊 문장 듣기
             </button>
@@ -818,6 +808,7 @@
               <button id="btnNextMouth" class="btn small">다음 →</button>
             </div>
             <div class="btn-row" style="justify-content:center;margin-top:4px;">
+              <!-- 🔊 음소 TTS 버튼 (모드에 따라 숨김/표시) -->
               <button id="btnSpeakMouth" class="btn small subtle">🔊 음소 듣기</button>
             </div>
             <p class="hint" style="margin-top:6px;">
@@ -894,13 +885,9 @@
   <script>
     "use strict";
 
-    // 브라우저 기능 지원 여부
     const supportsTTS =
       "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
 
-    // ----------------------
-    // 공통 상태 & 유틸
-    // ----------------------
     const state = {
       xp: 0,
       level: 1,
@@ -916,9 +903,9 @@
         vibration: false,
         lipreading: false
       },
-      history: [], // {time, target, recognized, score, durationSec}
-      learnerMode: "integrated", // 통합 수업 / 청각장애 중심 / 일반 학생
-      hearingLevel: "moderate"   // mild / moderate / severe (개인화)
+      history: [],
+      learnerMode: "integrated", // 통합 / 청각장애 중심 / 일반
+      hearingLevel: "moderate"   // mild / moderate / severe
     };
 
     const STORAGE_KEY = "soundstudy_demo_state_v3";
@@ -934,41 +921,36 @@
       log.prepend(div);
     }
 
-    // 현재 프로필에서 TTS 사용 가능 여부
+    // 현재 프로필에서 TTS 사용 가능 여부 (버튼 표시 여부에만 사용)
     function isTTSEnabledForCurrentProfile() {
       const mode = state.learnerMode;
       const level = state.hearingLevel;
       if (mode === "integrated" || mode === "hearing") return true;
-      if (mode === "deaf" && level === "mild") return true; // 경도/부분 난청만 허용
+      if (mode === "deaf" && level === "mild") return true; // 경도/부분 난청
       return false;
     }
 
-    // 공통 TTS 함수
+    // 공통 TTS 함수 (모드 체크는 하지 않음, 버튼이 안 보이는 모드에서는 호출 자체가 안 됨)
     function speakText(text, opts = {}) {
       if (!supportsTTS) {
         alert("이 브라우저는 TTS(텍스트 읽어주기)를 지원하지 않습니다.");
-        return;
-      }
-      if (!isTTSEnabledForCurrentProfile()) {
-        alert(
-          "현재 선택된 학습자 모드에서는 소리를 출력하지 않고, 시각·촉각 중심으로 연습하도록 설계되어 있습니다."
-        );
         return;
       }
       if (!text || !text.trim()) {
         alert("읽을 텍스트가 없습니다.");
         return;
       }
+
       const utter = new SpeechSynthesisUtterance(text.trim());
       utter.lang = opts.lang || "ko-KR";
       utter.rate = opts.rate ?? 1.0;
       utter.pitch = opts.pitch ?? 1.0;
 
-      // 볼륨: 경도/부분 난청 모드에서는 최대로, 나머지는 약간 줄임
+      // 경도/부분 난청 모드에서는 볼륨 최대, 나머지는 살짝 낮게
       let volume = opts.volume;
       if (volume == null) {
         if (state.learnerMode === "deaf" && state.hearingLevel === "mild") {
-          volume = 1.0; // 최대
+          volume = 1.0;
         } else {
           volume = 0.9;
         }
@@ -1142,10 +1124,11 @@
       });
     }
 
-    // TTS 상태 메시지 업데이트
+    // TTS 설명 문구
     function updateTTSStatusMessage() {
       const el = document.getElementById("ttsStatus");
       if (!el) return;
+
       if (!supportsTTS) {
         el.textContent =
           "이 브라우저는 웹 TTS를 지원하지 않습니다. 실제 앱 버전에서 음성 출력 기능을 구현할 수 있습니다.";
@@ -1156,19 +1139,50 @@
         const mode = state.learnerMode;
         const level = state.hearingLevel;
         let profileDesc = "";
+
         if (mode === "integrated") {
-          profileDesc = "통합 수업 모드에서, 듣기 어려운 학생과 일반 학생이 같은 화면에서 TTS를 함께 활용할 수 있습니다.";
+          profileDesc =
+            "통합 수업 모드에서, 듣기 어려운 학생과 일반 학생이 같은 화면에서 TTS를 함께 활용할 수 있습니다.";
         } else if (mode === "hearing") {
-          profileDesc = "일반 학생 모드에서, 소리와 시각 피드백을 동시에 활용하는 상황을 가정합니다.";
+          profileDesc =
+            "일반 학생 모드에서, 소리와 시각 피드백을 동시에 활용하는 상황을 가정합니다.";
         } else if (mode === "deaf" && level === "mild") {
-          profileDesc = "청각장애-경도/부분 난청 모드에서는 TTS 음량을 최대로 설정해 보조 청각 정보로 활용합니다.";
+          profileDesc =
+            "청각장애-경도/부분 난청 모드에서는 TTS 음량을 최대로 설정해 보조 청각 정보로 활용합니다.";
         }
+
         el.textContent =
-          "현재 학습자 프로필에서는 목표 문장과 음소를 소리로 들을 수 있습니다. " + profileDesc;
+          "현재 학습자 프로필에서는 목표 문장과 음소를 소리로 들을 수 있습니다. " +
+          profileDesc +
+          " (🔊 버튼이 화면에 표시됩니다.)";
       } else {
         el.textContent =
-          "현재 학습자 프로필(청각장애-중등도 이상)에서는 소리를 출력하지 않고, 시각·촉각 중심 피드백만 제공합니다.";
+          "현재 학습자 프로필(청각장애-중등도 이상)에서는 소리를 출력하지 않고, 시각·촉각 중심 피드백만 제공합니다. (🔊 버튼이 숨겨집니다.)";
       }
+    }
+
+    // 🔊 버튼 보이기/숨기기
+    function updateTTSVisibility() {
+      const enabled = isTTSEnabledForCurrentProfile() && supportsTTS;
+      const btnTarget = document.getElementById("btnSpeakTarget");
+      const btnMouth = document.getElementById("btnSpeakMouth");
+
+      if (btnTarget) {
+        btnTarget.style.display = enabled ? "inline-flex" : "none";
+      }
+      if (btnMouth) {
+        btnMouth.style.display = enabled ? "inline-flex" : "none";
+      }
+    }
+
+    function updateHearingLevelUI() {
+      const buttons = document.querySelectorAll(".mode-btn[data-hearing]");
+      buttons.forEach((btn) => {
+        btn.classList.toggle(
+          "active",
+          btn.getAttribute("data-hearing") === state.hearingLevel
+        );
+      });
     }
 
     function updateModeUI() {
@@ -1225,16 +1239,7 @@
 
       updateHearingLevelUI();
       updateTTSStatusMessage();
-    }
-
-    function updateHearingLevelUI() {
-      const buttons = document.querySelectorAll(".mode-btn[data-hearing]");
-      buttons.forEach((btn) => {
-        btn.classList.toggle(
-          "active",
-          btn.getAttribute("data-hearing") === state.hearingLevel
-        );
-      });
+      updateTTSVisibility(); // 🔊 버튼 표시/숨김
     }
 
     function updateAllUI() {
@@ -1243,9 +1248,7 @@
       updateModeUI();
     }
 
-    // ----------------------
     // 네비게이션
-    // ----------------------
     document.querySelectorAll(".nav-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const targetId = btn.getAttribute("data-target");
@@ -1725,9 +1728,7 @@
       }
     })();
 
-    // ----------------------
-    // 진동 제어
-    // ----------------------
+    // 진동
     const vibrationStatus = document.getElementById("vibrationStatus");
     const supportsVibration = "vibrate" in navigator && !isIOS;
 
@@ -1774,9 +1775,7 @@
       });
     });
 
-    // ----------------------
-    // 립리딩 모듈
-    // ----------------------
+    // 립리딩
     const mouthShapes = [
       { label: "아", desc: "입을 크게 벌리고 턱을 충분히 내려 주세요." },
       { label: "이", desc: "입꼬리를 옆으로 길게 벌리고 치아가 살짝 보이도록 합니다." },
@@ -1813,7 +1812,7 @@
         updateMouthUI();
       });
 
-    // 🔊 현재 음소 TTS
+    // 🔊 음소 TTS 버튼
     document
       .getElementById("btnSpeakMouth")
       .addEventListener("click", () => {
@@ -1826,7 +1825,7 @@
 
     updateMouthUI();
 
-    // 카메라
+    // 립리딩 카메라
     let lipCamStream = null;
     const lipCamera = document.getElementById("lipCamera");
     const lipCamStatus = document.getElementById("lipCamStatus");
@@ -1874,9 +1873,7 @@
     btnStartLipCam.addEventListener("click", startLipCamera);
     btnStopLipCam.addEventListener("click", stopLipCamera);
 
-    // ----------------------
-    // 학습자 모드 토글 & 청각장애 정도
-    // ----------------------
+    // 모드 토글
     document.querySelectorAll(".mode-btn[data-mode]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const mode = btn.getAttribute("data-mode");
@@ -1911,9 +1908,7 @@
       });
     });
 
-    // ----------------------
     // 진행도 초기화
-    // ----------------------
     document
       .getElementById("btnResetProgress")
       .addEventListener("click", () => {
@@ -1936,15 +1931,13 @@
         logEvent("진행도와 기록을 모두 초기화했습니다.");
       });
 
-    // ----------------------
-    // 초기 가동
-    // ----------------------
     window.addEventListener("load", () => {
       resizeCanvases();
       loadState();
       updateTTSStatusMessage();
+      updateTTSVisibility(); // 🔊 버튼 초기 상태 반영
       logEvent(
-        "SoundStudy 데모를 시작했습니다. 상단 탭과 학습자 모드를 바꾸며 언어 수업 시나리오를 체험해 보세요."
+        "SoundStudy 데모를 시작했습니다. 상단 탭과 학습자 모드를 바꾸며 포용적 수업 시나리오를 체험해 보세요."
       );
     });
   </script>
